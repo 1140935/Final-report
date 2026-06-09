@@ -1,107 +1,94 @@
-:root {
-    --primary-color: #ff6b6b;
-    --bg-color: #f7f9fc;
-    --card-bg: #ffffff;
-    --text-color: #333333;
+// 預設的餐廳資料庫 (這裡可以換成你們學校附近的店)
+const defaultRestaurants = [
+    { name: "學餐自助餐", category: "飯類", price: "低" },
+    { name: "校門口乾麵", category: "麵類", price: "低" },
+    { name: "轉角義大利麵", category: "西式", price: "中" },
+    { name: "巷口麥當勞", category: "速食", price: "中" },
+    { name: "豪華牛排館", category: "西式", price: "高" },
+    { name: "阿嬤的滷肉飯", category: "飯類", price: "低" }
+];
+
+// 從 LocalStorage 讀取使用者自訂的餐廳，如果沒有就空陣列
+let customRestaurants = JSON.parse(localStorage.getItem('myRestaurants')) || [];
+
+let isDrawing = false; // 防止重複點擊抽籤
+
+// 取得合併後的完整餐廳名單
+function getAllRestaurants() {
+    return [...defaultRestaurants, ...customRestaurants];
 }
 
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    margin: 0;
+// 步驟三：自訂新增餐廳功能
+function addRestaurant() {
+    const inputArea = document.getElementById('new-restaurant');
+    const newName = inputArea.value.trim();
+    
+    if (newName === "") {
+        alert("請輸入餐廳名稱！");
+        return;
+    }
+
+    // 預設分類為飯類，價格為中等 (你可以再擴充讓使用者選)
+    const newObj = { name: newName, category: "飯類", price: "中" };
+    customRestaurants.push(newObj);
+    
+    // 存入瀏覽器的 LocalStorage，這樣重整網頁資料不會不見！
+    localStorage.setItem('myRestaurants', JSON.stringify(customRestaurants));
+    
+    inputArea.value = "";
+    alert(`已將「${newName}」加入抽籤池！`);
 }
 
-.container {
-    background-color: var(--card-bg);
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    width: 90%;
-    max-width: 400px;
-    text-align: center;
-}
+// 步驟二 & 三：篩選與進階抽籤動畫
+function startDraw() {
+    if (isDrawing) return; // 動畫執行中不可重複點擊
 
-h1 {
-    color: var(--primary-color);
-    margin-bottom: 25px;
-}
+    const categoryFilter = document.getElementById('category-filter').value;
+    const priceFilter = document.getElementById('price-filter').value;
+    const resultBox = document.getElementById('result-box');
+    const mapLink = document.getElementById('map-link');
 
-.filter-section, .add-section {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
-}
+    // 1. 根據使用者的選擇過濾餐廳
+    const pool = getAllRestaurants().filter(item => {
+        const matchCategory = categoryFilter === "all" || item.category === categoryFilter;
+        const matchPrice = priceFilter === "all" || item.price === priceFilter;
+        return matchCategory && matchPrice;
+    });
 
-select, input {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 14px;
-}
+    if (pool.length === 0) {
+        resultBox.innerText = "沒有符合條件的餐廳😢";
+        mapLink.style.display = "none";
+        return;
+    }
 
-button {
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: transform 0.1s, background-color 0.2s;
-}
+    isDrawing = true;
+    mapLink.style.display = "none"; // 動畫期間隱藏地圖連結
+    
+    // 2. 步驟二：進階跑馬燈動畫效果
+    let counter = 0;
+    const duration = 2000; // 動畫總時長 2 秒
+    const speed = 50; // 每 50 毫秒切換一次名字
 
-button:hover {
-    background-color: #ff5252;
-}
+    // 使用 setInterval 創造名字快速切換的視覺效果
+    const timer = setInterval(() => {
+        // 隨機從過濾後的池子挑選名字顯示
+        const randomIndex = Math.floor(Math.random() * pool.length);
+        resultBox.innerText = pool[randomIndex].name;
+        counter += speed;
 
-button:active {
-    transform: scale(0.95);
-}
-
-#add-btn {
-    background-color: #4ecdc4;
-}
-
-.draw-section {
-    margin: 30px 0;
-    min-height: 120px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-#result-box {
-    font-size: 28px;
-    font-weight: bold;
-    color: var(--text-color);
-    margin-bottom: 15px;
-    min-height: 40px;
-}
-
-#map-link {
-    color: #4285f4;
-    text-decoration: none;
-    font-weight: bold;
-    padding: 8px 15px;
-    border: 1px solid #4285f4;
-    border-radius: 20px;
-    transition: all 0.2s;
-}
-
-#map-link:hover {
-    background-color: #4285f4;
-    color: white;
-}
-
-#draw-btn {
-    width: 100%;
-    font-size: 18px;
-    padding: 15px;
+        // 當時間到了，停止動畫並顯示最終結果
+        if (counter >= duration) {
+            clearInterval(timer);
+            
+            // 決定最終贏家
+            const finalWinner = pool[Math.floor(Math.random() * pool.length)];
+            resultBox.innerText = `🎉 ${finalWinner.name} 🎉`;
+            
+            // 設定 Google Maps 搜尋連結
+            mapLink.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(finalWinner.name)}`;
+            mapLink.style.display = "inline-block";
+            
+            isDrawing = false; // 解除鎖定
+        }
+    }, speed);
 }
