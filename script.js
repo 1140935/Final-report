@@ -92,3 +92,74 @@ function startDraw() {
         }
     }, speed);
 }
+// ====== 新增：Google Maps 附近餐廳抓取功能 ======
+
+// 建立一個隱藏的 div 來放置 Google Maps 服務需要的實體
+const mapContainer = document.createElement('div');
+let placesService;
+
+function fetchNearbyRestaurants() {
+    const statusText = document.getElementById('location-status');
+    statusText.innerText = "正在取得您的位置...";
+
+    // 1. 使用 HTML5 Geolocation API 取得經緯度
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                statusText.innerText = "位置取得成功！正在搜尋附近餐廳...";
+                
+                searchPlaces(lat, lng, statusText);
+            },
+            (error) => {
+                statusText.innerText = "無法取得位置，請確認是否開啟定位權限！";
+                console.error(error);
+            }
+        );
+    } else {
+        statusText.innerText = "您的瀏覽器不支援定位功能。";
+    }
+}
+
+// 2. 呼叫 Google Places API 搜尋 1000 公尺內的餐廳
+function searchPlaces(lat, lng, statusText) {
+    const userLocation = new google.maps.LatLng(lat, lng);
+    
+    // 初始化 Places Service
+    const map = new google.maps.Map(mapContainer, { center: userLocation, zoom: 15 });
+    placesService = new google.maps.places.PlacesService(map);
+
+    const request = {
+        location: userLocation,
+        radius: '1000', // 1000 公尺 = 1 公里
+        type: ['restaurant']
+    };
+
+    placesService.nearbySearch(request, (results, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK) {
+            // 清空原本的自訂清單，換成附近搜尋到的結果
+            customRestaurants = []; 
+            
+            // 將 Google 回傳的資料轉換成我們的資料格式
+            results.forEach(place => {
+                // 價格等級 (Google 回傳 0-4，我們將其簡化)
+                let priceStr = "中"; 
+                if (place.price_level === 1) priceStr = "低";
+                if (place.price_level >= 3) priceStr = "高";
+
+                customRestaurants.push({
+                    name: place.name,
+                    category: "附近搜尋", // Google 的分類比較雜，這裡統一標記
+                    price: priceStr
+                });
+            });
+
+            statusText.innerText = `✅ 成功抓取附近 ${results.length} 家餐廳！現在可以開始抽籤了。`;
+            statusText.style.color = "green";
+        } else {
+            statusText.innerText = "搜尋附近餐廳失敗，請稍後再試。";
+            statusText.style.color = "red";
+        }
+    });
+}
