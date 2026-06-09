@@ -27,18 +27,18 @@
             </select>
         </div>
 
-        <div class="add-section">
-            <input type="text" id="new-restaurant" placeholder="新增想吃的店...">
-            <button id="add-btn" onclick="addRestaurant()">加入清單</button>
+        <div class="location-section" style="margin-bottom: 20px;">
+            <button id="locate-btn" onclick="fetchNearbyRestaurants()" style="background-color: #fbbc05; width: 100%; color: #333;">
+                📍 抓取目前位置 1 公里內的餐廳
+            </button>
+            <p id="location-status" style="font-size: 12px; color: #666; margin-top: 5px;"></p>
         </div>
 
         <div class="draw-section">
-            <div id="result-box">點擊下方按鈕開始！</div>
-            <a id="map-link" href="#" target="_blank" style="display: none;">📍 查看 Google Maps</a>
-        </div>
-
-        <button id="draw-btn" onclick="startDraw()">🎲 開始抽籤</button>
-    </div>
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
+    <script src="script.js"></script>
+</body>
+</html>
 
     <script src="script.js"></script>
 </body>
