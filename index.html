@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今天吃什麼？校園美食抽籤器</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🍔 今天吃什麼？</h1>
+        
+        <div class="filter-section">
+            <select id="category-filter">
+                <option value="all">所有分類</option>
+                <option value="飯類">🍚 飯類</option>
+                <option value="麵類">🍜 麵類</option>
+                <option value="速食">🍟 速食</option>
+                <option value="西式">🍝 西式</option>
+            </select>
+
+            <select id="price-filter">
+                <option value="all">所有價位</option>
+                <option value="低">💰 低價位 (100內)</option>
+                <option value="中">💰💰 中價位 (100-200)</option>
+                <option value="高">💰💰💰 聚餐吃好點</option>
+            </select>
+        </div>
+
+        <div class="add-section">
+            <input type="text" id="new-restaurant" placeholder="新增想吃的店...">
+            <button id="add-btn" onclick="addRestaurant()">加入清單</button>
+        </div>
+
+        <div class="draw-section">
+            <div id="result-box">點擊下方按鈕開始！</div>
+            <a id="map-link" href="#" target="_blank" style="display: none;">📍 查看 Google Maps</a>
+        </div>
+
+        <button id="draw-btn" onclick="startDraw()">🎲 開始抽籤</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
