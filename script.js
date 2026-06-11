@@ -98,11 +98,13 @@ function startDraw() {
 const mapContainer = document.createElement('div');
 let placesService;
 
-function fetchNearbyRestaurants() {
+// ====== 新增：Google Maps 附近餐廳抓取功能 (2025 新版 API) ======
+
+async function fetchNearbyRestaurants() {
     const statusText = document.getElementById('location-status');
     statusText.innerText = "正在取得您的位置...";
 
-    // 1. 使用 HTML5 Geolocation API 取得經緯度
+    // 1. 取得經緯度
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             (position) => {
@@ -122,44 +124,49 @@ function fetchNearbyRestaurants() {
     }
 }
 
-// 2. 呼叫 Google Places API 搜尋 1000 公尺內的餐廳
-function searchPlaces(lat, lng, statusText) {
-    const userLocation = new google.maps.LatLng(lat, lng);
-    
-    // 初始化 Places Service
-    const map = new google.maps.Map(mapContainer, { center: userLocation, zoom: 15 });
-    placesService = new google.maps.places.PlacesService(map);
+// 2. 呼叫最新的 Place API 搜尋 1000 公尺內的餐廳
+async function searchPlaces(lat, lng, statusText) {
+    try {
+        // 設定新版 API 的搜尋條件
+        const request = {
+            fields: ['displayName', 'priceLevel'], // 我們只需要餐廳名稱跟價位
+            locationRestriction: {
+                center: { lat: lat, lng: lng },
+                radius: 1000, // 1 公里
+            },
+            includedPrimaryTypes: ['restaurant'],
+            maxResultCount: 20, // 最多抓取 20 家
+        };
 
-    const request = {
-        location: userLocation,
-        radius: '1000', // 1000 公尺 = 1 公里
-        type: ['restaurant']
-    };
+        // 呼叫新版 searchNearby 方法 (使用 await)
+        const { places } = await google.maps.places.Place.searchNearby(request);
 
-    placesService.nearbySearch(request, (results, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK) {
-            // 清空原本的自訂清單，換成附近搜尋到的結果
+        if (places && places.length > 0) {
             customRestaurants = []; 
             
-            // 將 Google 回傳的資料轉換成我們的資料格式
-            results.forEach(place => {
-                // 價格等級 (Google 回傳 0-4，我們將其簡化)
-                let priceStr = "中"; 
-                if (place.price_level === 1) priceStr = "低";
-                if (place.price_level >= 3) priceStr = "高";
+            // 整理資料格式
+            places.forEach(place => {
+                let priceStr = "中";
+                // 新版 API 價位回傳格式改變了
+                if (place.priceLevel === 'PRICE_LEVEL_INEXPENSIVE') priceStr = "低";
+                if (place.priceLevel === 'PRICE_LEVEL_EXPENSIVE' || place.priceLevel === 'PRICE_LEVEL_VERY_EXPENSIVE') priceStr = "高";
 
                 customRestaurants.push({
-                    name: place.name,
-                    category: "附近搜尋", // Google 的分類比較雜，這裡統一標記
+                    name: place.displayName ? place.displayName.text : "未知餐廳",
+                    category: "附近搜尋",
                     price: priceStr
                 });
             });
 
-            statusText.innerText = `✅ 成功抓取附近 ${results.length} 家餐廳！現在可以開始抽籤了。`;
+            statusText.innerText = `✅ 成功抓取附近 ${places.length} 家餐廳！現在可以開始抽籤了。`;
             statusText.style.color = "green";
         } else {
-            statusText.innerText = "搜尋附近餐廳失敗，請稍後再試。";
+            statusText.innerText = "附近找不到餐廳😢，請稍後再試。";
             statusText.style.color = "red";
         }
-    });
+    } catch (error) {
+        console.error("Places API 錯誤:", error);
+        statusText.innerText = "抓取失敗！請確認是否已啟用「Places API (New)」並綁定信用卡。";
+        statusText.style.color = "red";
+    }
 }
