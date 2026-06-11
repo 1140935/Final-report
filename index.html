@@ -11,19 +11,11 @@
         <h1>🍔 今天吃什麼？</h1>
         
         <div class="filter-section">
-            <select id="category-filter">
-                <option value="all">所有分類</option>
-                <option value="飯類">🍚 飯類</option>
-                <option value="麵類">🍜 麵類</option>
-                <option value="速食">🍟 速食</option>
-                <option value="西式">🍝 西式</option>
-                <option value="附近搜尋">📍 附近搜尋</option> </select>
-
-            <select id="price-filter">
-                <option value="all">所有價位</option>
-                <option value="低">💰 低價位 (100內)</option>
-                <option value="中">💰💰 中價位 (100-200)</option>
-                <option value="高">💰💰💰 聚餐吃好點</option>
+            <select id="radius-select">
+                <option value="500">📍 範圍：500 公尺 (走路 5 分鐘)</option>
+                <option value="1000" selected>📍 範圍：1 公里 (走路 15 分鐘)</option>
+                <option value="2000">📍 範圍：2 公里 (騎車距離)</option>
+                <option value="5000">📍 範圍：5 公里 (開車距離)</option>
             </select>
         </div>
 
@@ -34,7 +26,7 @@
 
         <div class="location-section" style="margin-bottom: 20px;">
             <button id="locate-btn" onclick="fetchNearbyRestaurants()" style="background-color: #fbbc05; width: 100%; color: #333;">
-                📍 抓取目前位置 1 公里內的餐廳
+                📍 抓取所選範圍內的餐廳
             </button>
             <p id="location-status" style="font-size: 12px; color: #666; margin-top: 5px;"></p>
         </div>
