@@ -1,11 +1,6 @@
 // 預設的餐廳資料庫
 const defaultRestaurants = [
-    { name: "學餐自助餐", category: "飯類", price: "低" },
-    { name: "校門口乾麵", category: "麵類", price: "低" },
-    { name: "轉角義大利麵", category: "西式", price: "中" },
-    { name: "巷口麥當勞", category: "速食", price: "中" },
-    { name: "豪華牛排館", category: "西式", price: "高" },
-    { name: "阿嬤的滷肉飯", category: "飯類", price: "低" }
+   
 ];
 
 let customRestaurants = JSON.parse(localStorage.getItem('myRestaurants')) || [];
