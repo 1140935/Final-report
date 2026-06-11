@@ -1,8 +1,3 @@
-// 預設的餐廳資料庫
-const defaultRestaurants = [
-   
-];
-
 let customRestaurants = JSON.parse(localStorage.getItem('myRestaurants')) || [];
 let isDrawing = false;
 
@@ -17,26 +12,31 @@ function addRestaurant() {
         alert("請輸入餐廳名稱！");
         return;
     }
-    // 雖然拿掉篩選了，但內部還是給個預設值，確保資料格式統一
-    const newObj = { name: newName, category: "自訂", price: "中" };
+    // 自己想吃的店，預設給它 5 顆星，確保不會被篩選掉
+    const newObj = { name: newName, category: "自訂", price: "中", rating: 5.0 };
     customRestaurants.push(newObj);
     localStorage.setItem('myRestaurants', JSON.stringify(customRestaurants));
     inputArea.value = "";
     alert(`已將「${newName}」加入抽籤池！`);
 }
 
-// 更新：移除了分類與價格的過濾邏輯
 function startDraw() {
     if (isDrawing) return;
 
     const resultBox = document.getElementById('result-box');
     const mapLink = document.getElementById('map-link');
+    
+    // 取得使用者選擇的最低評分限制
+    const minRating = parseFloat(document.getElementById('rating-filter').value);
 
-    // 直接取得所有餐廳，不進行分類篩選
-    const pool = getAllRestaurants();
+    // 進行評分過濾
+    const pool = getAllRestaurants().filter(item => {
+        const itemRating = item.rating || 0; // 如果沒有評分資料，預設為 0
+        return itemRating >= minRating;
+    });
 
     if (pool.length === 0) {
-        resultBox.innerText = "沒有可抽籤的餐廳😢";
+        resultBox.innerText = "該範圍與評分下沒有餐廳😢";
         mapLink.style.display = "none";
         return;
     }
@@ -56,7 +56,11 @@ function startDraw() {
         if (counter >= duration) {
             clearInterval(timer);
             const finalWinner = pool[Math.floor(Math.random() * pool.length)];
-            resultBox.innerText = `🎉 ${finalWinner.name} 🎉`;
+            
+            // 決定最終結果時，順便把星星數印出來顯示
+            const ratingDisplay = finalWinner.rating ? `(${finalWinner.rating}⭐)` : "";
+            resultBox.innerText = `🎉 ${finalWinner.name} ${ratingDisplay} 🎉`;
+            
             mapLink.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(finalWinner.name)}`;
             mapLink.style.display = "inline-block";
             isDrawing = false;
@@ -64,10 +68,9 @@ function startDraw() {
     }, speed);
 }
 
-// 更新：讀取距離選單數值，並傳遞給搜尋函數
 async function fetchNearbyRestaurants() {
     const statusText = document.getElementById('location-status');
-    const radiusValue = document.getElementById('radius-select').value; // 取得使用者選擇的距離
+    const radiusValue = document.getElementById('radius-select').value;
     
     statusText.innerText = "正在取得您的位置...";
 
@@ -78,7 +81,6 @@ async function fetchNearbyRestaurants() {
                 const lng = position.coords.longitude;
                 statusText.innerText = `位置取得成功！正在搜尋 ${radiusValue} 公尺內的餐廳...`;
                 
-                // 把 radiusValue 傳給 searchPlaces
                 searchPlaces(lat, lng, statusText, radiusValue); 
             },
             (error) => {
@@ -91,14 +93,14 @@ async function fetchNearbyRestaurants() {
     }
 }
 
-// 更新：接收 radius 參數，動態改變 Google 搜尋半徑
 async function searchPlaces(lat, lng, statusText, radius) {
     try {
         const request = {
-            fields: ['displayName', 'priceLevel'],
+            // 新增 'rating' 欄位，要求 Google 給我們店家評分
+            fields: ['displayName', 'rating'],
             locationRestriction: {
                 center: { lat: lat, lng: lng },
-                radius: parseInt(radius), // 使用動態半徑範圍
+                radius: parseInt(radius),
             },
             includedPrimaryTypes: ['restaurant'],
             maxResultCount: 20,
@@ -112,7 +114,7 @@ async function searchPlaces(lat, lng, statusText, radius) {
                 customRestaurants.push({
                     name: place.displayName || "未知餐廳",
                     category: "附近搜尋",
-                    price: "中" // 簡化價格屬性
+                    rating: place.rating || 0 // 將 Google 評分存下來
                 });
             });
 
