@@ -1,10 +1,17 @@
+// 1. 預設的餐廳資料庫
+const defaultRestaurants = [
+   
+];
+
 let customRestaurants = JSON.parse(localStorage.getItem('myRestaurants')) || [];
 let isDrawing = false;
 
+// 取得所有餐廳 (包含預設與附近搜尋的)
 function getAllRestaurants() {
     return [...defaultRestaurants, ...customRestaurants];
 }
 
+// 手動新增餐廳功能
 function addRestaurant() {
     const inputArea = document.getElementById('new-restaurant');
     const newName = inputArea.value.trim();
@@ -20,6 +27,7 @@ function addRestaurant() {
     alert(`已將「${newName}」加入抽籤池！`);
 }
 
+// 開始抽籤與評分篩選邏輯
 function startDraw() {
     if (isDrawing) return;
 
@@ -31,7 +39,7 @@ function startDraw() {
 
     // 進行評分過濾
     const pool = getAllRestaurants().filter(item => {
-        const itemRating = item.rating || 0; // 如果沒有評分資料，預設為 0
+        const itemRating = item.rating || 0; 
         return itemRating >= minRating;
     });
 
@@ -57,7 +65,6 @@ function startDraw() {
             clearInterval(timer);
             const finalWinner = pool[Math.floor(Math.random() * pool.length)];
             
-            // 決定最終結果時，順便把星星數印出來顯示
             const ratingDisplay = finalWinner.rating ? `(${finalWinner.rating}⭐)` : "";
             resultBox.innerText = `🎉 ${finalWinner.name} ${ratingDisplay} 🎉`;
             
@@ -68,6 +75,7 @@ function startDraw() {
     }, speed);
 }
 
+// 觸發 Google Maps API 定位
 async function fetchNearbyRestaurants() {
     const statusText = document.getElementById('location-status');
     const radiusValue = document.getElementById('radius-select').value;
@@ -93,10 +101,10 @@ async function fetchNearbyRestaurants() {
     }
 }
 
+// 使用 Place API 搜尋附近並抓取評分
 async function searchPlaces(lat, lng, statusText, radius) {
     try {
         const request = {
-            // 新增 'rating' 欄位，要求 Google 給我們店家評分
             fields: ['displayName', 'rating'],
             locationRestriction: {
                 center: { lat: lat, lng: lng },
@@ -114,7 +122,7 @@ async function searchPlaces(lat, lng, statusText, radius) {
                 customRestaurants.push({
                     name: place.displayName || "未知餐廳",
                     category: "附近搜尋",
-                    rating: place.rating || 0 // 將 Google 評分存下來
+                    rating: place.rating || 0 
                 });
             });
 
