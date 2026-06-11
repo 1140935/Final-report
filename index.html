@@ -17,7 +17,7 @@
                 <option value="麵類">🍜 麵類</option>
                 <option value="速食">🍟 速食</option>
                 <option value="西式">🍝 西式</option>
-            </select>
+                <option value="附近搜尋">📍 附近搜尋</option> </select>
 
             <select id="price-filter">
                 <option value="all">所有價位</option>
@@ -25,6 +25,11 @@
                 <option value="中">💰💰 中價位 (100-200)</option>
                 <option value="高">💰💰💰 聚餐吃好點</option>
             </select>
+        </div>
+
+        <div class="add-section">
+            <input type="text" id="new-restaurant" placeholder="新增想吃的店...">
+            <button id="add-btn" onclick="addRestaurant()">加入</button>
         </div>
 
         <div class="location-section" style="margin-bottom: 20px;">
@@ -35,7 +40,14 @@
         </div>
 
         <div class="draw-section">
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAaXEMCpH_vgP9G-mTQGftktt0JOR1kk4o&libraries=places"></script>
+            <div id="result-box">點擊下方按鈕開始！</div>
+            <a id="map-link" href="#" target="_blank" style="display: none;">📍 查看 Google Maps</a>
+        </div>
+
+        <button id="draw-btn" onclick="startDraw()">🎲 開始抽籤</button>
+    </div>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAaXEMCpH_vgP9G-mTQGftktt0JOR1kk4o&libraries&libraries=places"></script>
     <script src="script.js"></script>
 </body>
 </html>
