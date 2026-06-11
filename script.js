@@ -117,8 +117,9 @@ async function searchPlaces(lat, lng, statusText) {
                 if (place.priceLevel === 'PRICE_LEVEL_INEXPENSIVE') priceStr = "低";
                 if (place.priceLevel === 'PRICE_LEVEL_EXPENSIVE' || place.priceLevel === 'PRICE_LEVEL_VERY_EXPENSIVE') priceStr = "高";
 
+                // 【修復的關鍵在這裡】：把結尾的 .text 拿掉，直接讀取 displayName
                 customRestaurants.push({
-                    name: place.displayName ? place.displayName.text : "未知餐廳",
+                    name: place.displayName || "未知餐廳",
                     category: "附近搜尋",
                     price: priceStr
                 });
@@ -127,7 +128,7 @@ async function searchPlaces(lat, lng, statusText) {
             statusText.innerText = `✅ 成功抓取附近 ${places.length} 家餐廳！現在可以開始抽籤了。`;
             statusText.style.color = "green";
 
-            // 自動將選單切換回「所有分類」，確保能抽到剛抓下來的餐廳！
+            // 自動將選單切換回「所有分類」，確保能抽到剛抓下來的餐廳
             document.getElementById('category-filter').value = "all";
             document.getElementById('price-filter').value = "all";
 
